@@ -3,6 +3,7 @@ import Discord from 'discord.js';
 import secret from '../secrets/bot.json';
 import config from '../config.json';
 import allCommands from './allCommands';
+import { authorize } from './auth';
 
 const intents: Intents = new Discord.Intents(32767);
 
@@ -31,7 +32,8 @@ client.on('messageCreate', (message: Message) => {
 	}
 });
 
-client.on('ready', () => {
+client.on('ready', async () => {
+	await authorize();
 	console.log('Discord bot ready');
 });
 
