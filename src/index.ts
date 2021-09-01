@@ -3,7 +3,7 @@ import Discord from 'discord.js';
 import secret from '../secrets/bot.json';
 import config from '../config.json';
 import allCommands from './allCommands';
-import { authorize } from './auth';
+import { authorizeGoogleAPIs } from './auth';
 
 const intents: Intents = new Discord.Intents(32767);
 
@@ -33,7 +33,7 @@ client.on('messageCreate', (message: Message) => {
 });
 
 client.on('ready', async () => {
-	await authorize();
+	await authorizeGoogleAPIs();
 	console.log('Discord bot ready');
 });
 
