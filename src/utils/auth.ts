@@ -13,5 +13,3 @@ export async function authorizeGoogleAPIs() {
 		auth: authClient
 	});
 }
-
-export default google;

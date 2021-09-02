@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { google } from 'googleapis';
+import { getNPM } from '../utils/sheets';
 import Command from '../model/Command';
 
 const listPraktikan: Command = {
@@ -11,23 +11,13 @@ const listPraktikan: Command = {
 	action: async function (_, message: Message): Promise<void> {
 		message.channel.send('Looking up...');
 
-		const sheets = google.sheets({ version: 'v4' });
+		const res = await getNPM();
 
-		try {
-			const req = await sheets.spreadsheets.values.get({
-				spreadsheetId: '1Sy7BRZI1Dx5FTmdrqvyys-zLOUxGmQq0HcgLy6KEN6U',
-				range: `Kehadiran!A:A`,
-				majorDimension: 'COLUMNS'
-			});
-
-			const res = req.data;
-
-			console.log(res);
-		} catch (error) {
-			console.error(error);
+		if (res) {
+			message.channel.send('Done!');
+		} else {
+			message.channel.send('Uh oh! An error occured!');
 		}
-
-		message.channel.send('Done!');
 	}
 };
 

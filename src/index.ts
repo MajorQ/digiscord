@@ -3,7 +3,7 @@ import Discord from 'discord.js';
 import secret from '../secrets/bot.json';
 import config from '../config.json';
 import allCommands from './allCommands';
-import { authorizeGoogleAPIs } from './auth';
+import { authorizeGoogleAPIs } from './utils/auth';
 
 const intents: Intents = new Discord.Intents(32767);
 
