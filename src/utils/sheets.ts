@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 
-const sheets = google.sheets({ version: 'v4' });
+const sheets = google.sheets('v4');
 const rowOffset = 2;
 
 export const getNPM = async () => {
@@ -10,8 +10,8 @@ export const getNPM = async () => {
 			range: `Kehadiran!A:A`,
 			majorDimension: 'COLUMNS'
 		});
-
 		const res = req.data;
+
 		return res.values?.at(0)?.slice(rowOffset);
 	} catch (error) {
 		console.error(error);
