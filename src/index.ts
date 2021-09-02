@@ -5,9 +5,15 @@ import config from '../config.json';
 import allCommands from './allCommands';
 import { authorizeGoogleAPIs } from './utils/auth';
 
-const intents: Intents = new Discord.Intents(32767);
+const intents = [
+	Intents.FLAGS.GUILDS,
+	Intents.FLAGS.GUILD_MESSAGES,
+	Intents.FLAGS.GUILD_MEMBERS
+];
 
-const client: Client = new Discord.Client({ intents });
+const client: Client = new Discord.Client({
+	intents
+});
 
 client.on('messageCreate', (message: Message) => {
 	try {
