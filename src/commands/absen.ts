@@ -1,6 +1,10 @@
 import { Message } from 'discord.js';
 import Command from '../model/Command';
-import { getStudentIds, sendAttendance } from '../utils/sheets';
+import {
+	fetchStudentIds,
+	checkEmptyAttendance,
+	sendAttendance
+} from '../utils/sheets';
 
 const absen: Command = {
 	name: 'Absen',
@@ -11,8 +15,16 @@ const absen: Command = {
 		// Group request for performance
 		const reqs = await Promise.all([
 			message.guild?.channels.fetch(),
-			getStudentIds()
+			fetchStudentIds(),
+			checkEmptyAttendance()
 		]);
+
+		if (!reqs[2]) {
+			message.channel.send(
+				'The attendance has been filled! Check module number!'
+			);
+			return;
+		}
 
 		const channels = reqs[0];
 		const voiceChannels = channels?.filter((c) => c.type == 'GUILD_VOICE');

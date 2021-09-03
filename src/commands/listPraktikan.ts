@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { getStudentIds } from '../utils/sheets';
+import { fetchStudentIds } from '../utils/sheets';
 import Command from '../model/Command';
 
 const listPraktikan: Command = {
@@ -11,7 +11,7 @@ const listPraktikan: Command = {
 	action: async function (_, message: Message): Promise<void> {
 		message.channel.send('Looking up...');
 
-		const res = await getStudentIds();
+		const res = await fetchStudentIds();
 
 		if (res) {
 			message.channel.send('Done!');
