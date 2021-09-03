@@ -1,6 +1,6 @@
 import { Message } from 'discord.js';
 import Command from '../model/Command';
-import { getStudentIds } from '../utils/sheets';
+import { getStudentIds, sendAttendance } from '../utils/sheets';
 
 const absen: Command = {
 	name: 'Absen',
@@ -8,8 +8,6 @@ const absen: Command = {
 	hidden: false,
 	disabled: false,
 	action: async function (_, message: Message): Promise<void> {
-		message.channel.send('Looking up...');
-
 		// Group request for performance
 		const reqs = await Promise.all([
 			message.guild?.channels.fetch(),
@@ -45,7 +43,18 @@ const absen: Command = {
 			connectedStudentIds.includes(id) ? 1 : 0
 		);
 
-		message.channel.send('Done!');
+		// TODO: refactor
+		if (attendance) {
+			const res = await sendAttendance(attendance);
+
+			if (res) {
+				message.channel.send('Done!');
+			} else {
+				message.channel.send('Uh oh! An error occured!');
+			}
+		} else {
+			message.channel.send('Uh oh! An error occured!');
+		}
 	}
 };
 
