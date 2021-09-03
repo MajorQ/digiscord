@@ -1,6 +1,11 @@
 import { Message } from 'discord.js';
 import Command from '../model/Command';
 import {
+	processingMessage,
+	errorMessage,
+	resultMessage
+} from '../utils/messages';
+import {
 	fetchStudentIds,
 	checkEmptyAttendance,
 	sendAttendance
@@ -12,30 +17,42 @@ const absen: Command = {
 	hidden: false,
 	disabled: false,
 	action: async function (_, message: Message): Promise<void> {
+		processingMessage(message);
+
 		// Group request for performance
 		const reqs = await Promise.all([
+			checkEmptyAttendance(),
 			message.guild?.channels.fetch(),
-			fetchStudentIds(),
-			checkEmptyAttendance()
+			fetchStudentIds()
 		]);
 
-		if (!reqs[2]) {
-			message.channel.send(
-				'The attendance has been filled! Check module number!'
+		// If any requests fail, just abort
+		if (reqs.includes(null) || reqs.includes(undefined)) {
+			errorMessage(message);
+			return;
+		}
+
+		const emptySheet = reqs[0];
+		const channels = reqs[1];
+		const totalStudentIds = reqs[2];
+
+		// Check if attendance has already been filled
+		if (!emptySheet) {
+			resultMessage(
+				message,
+				'Sheet Filled',
+				'Sheet has already been filled! Check the current module!',
+				''
 			);
 			return;
 		}
 
-		const channels = reqs[0];
-		const voiceChannels = channels?.filter((c) => c.type == 'GUILD_VOICE');
-
-		const totalStudentIds = reqs[1];
+		const voiceChannels = channels!.filter((c) => c.type == 'GUILD_VOICE');
 		const connectedStudentIds: string[] = [];
-		let invalid = 0;
+		let invalidNicknames = 0;
 
-		// Check name for each member in every voice channel
-		// TODO: refactor (?)
-		voiceChannels?.forEach((vc) => {
+		// List student ids for each member in every voice channel
+		voiceChannels.forEach((vc) => {
 			vc.members.forEach((m) => {
 				const studentId = m.nickname ?? '';
 
@@ -46,27 +63,29 @@ const absen: Command = {
 				if (match) {
 					connectedStudentIds.push(match[1]);
 				} else {
-					invalid++;
+					invalidNicknames++;
 				}
 			});
 		});
 
-		const attendance = totalStudentIds?.map((id) =>
+		// Check if student is connected to a voice channel
+		const attendance = totalStudentIds!.map((id) =>
 			connectedStudentIds.includes(id) ? 1 : 0
 		);
+		const res = await sendAttendance(attendance);
 
-		// TODO: refactor
-		if (attendance) {
-			const res = await sendAttendance(attendance);
-
-			if (res) {
-				message.channel.send('Done!');
-			} else {
-				message.channel.send('Uh oh! An error occured!');
-			}
-		} else {
-			message.channel.send('Uh oh! An error occured!');
+		// Check if success
+		if (!res) {
+			errorMessage(message);
+			return;
 		}
+
+		resultMessage(
+			message,
+			'Attendance Taken',
+			'Click on link to go to sheet!',
+			''
+		);
 	}
 };
 

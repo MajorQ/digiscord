@@ -24,7 +24,11 @@ const fetchStudentIds = () => fetchColumn(1);
 const checkEmptyAttendance = async () => {
 	const column = getColumn(currentModule);
 	const res = await fetchColumn(column);
-	return res?.length === 0;
+	if (res) {
+		return res.length === 0;
+	}
+
+	return res;
 };
 
 const sendAttendance = async (attendance: number[]) => {
