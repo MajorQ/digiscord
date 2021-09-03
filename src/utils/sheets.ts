@@ -1,18 +1,20 @@
 import { google } from 'googleapis';
 
+export { getStudentIds };
+
 const sheets = google.sheets('v4');
 const rowOffset = 2;
 
-export const getNPM = async () => {
+const getStudentIds = async () => {
 	try {
 		const req = await sheets.spreadsheets.values.get({
 			spreadsheetId: '1Sy7BRZI1Dx5FTmdrqvyys-zLOUxGmQq0HcgLy6KEN6U',
-			range: `Kehadiran!A:A`,
+			range: `Kehadiran!A${rowOffset}:A`,
 			majorDimension: 'COLUMNS'
 		});
 		const res = req.data;
 
-		return res.values?.at(0)?.slice(rowOffset);
+		return res.values?.at(0);
 	} catch (error) {
 		console.error(error);
 	}

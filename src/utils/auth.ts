@@ -2,7 +2,7 @@ import { google } from 'googleapis';
 
 const scopes = ['https://www.googleapis.com/auth/spreadsheets'];
 
-export const authorizeGoogleAPIs = async () => {
+const authorizeGoogleAPIs = async () => {
 	const auth = new google.auth.GoogleAuth({
 		keyFile: 'secrets/digiscord-test-c4b34bfd3dca.json',
 		scopes
@@ -14,3 +14,5 @@ export const authorizeGoogleAPIs = async () => {
 		auth: authClient
 	});
 };
+
+export { authorizeGoogleAPIs };

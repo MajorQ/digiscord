@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { getNPM } from '../utils/sheets';
+import { getStudentIds } from '../utils/sheets';
 import Command from '../model/Command';
 
 const listPraktikan: Command = {
@@ -7,11 +7,11 @@ const listPraktikan: Command = {
 	description:
 		'Lists the student ids of all practicants that are in the sheet',
 	hidden: false,
-	disabled: false,
+	disabled: true,
 	action: async function (_, message: Message): Promise<void> {
 		message.channel.send('Looking up...');
 
-		const res = await getNPM();
+		const res = await getStudentIds();
 
 		if (res) {
 			message.channel.send('Done!');
