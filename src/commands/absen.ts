@@ -40,7 +40,7 @@ const absen: Command = {
 		if (!emptySheet) {
 			resultMessage(
 				message,
-				'Sheet Filled',
+				'Sheet Already Filled',
 				'Sheet has already been filled! Check the current module!',
 				''
 			);
@@ -49,7 +49,9 @@ const absen: Command = {
 
 		const voiceChannels = channels!.filter((c) => c.type == 'GUILD_VOICE');
 		const connectedStudentIds: string[] = [];
-		let invalidNicknames = 0;
+		let invalidCount = 0;
+		let connectedCount = 0;
+		let offlineCount = 0;
 
 		// List student ids for each member in every voice channel
 		voiceChannels.forEach((vc) => {
@@ -63,15 +65,21 @@ const absen: Command = {
 				if (match) {
 					connectedStudentIds.push(match[1]);
 				} else {
-					invalidNicknames++;
+					invalidCount++;
 				}
 			});
 		});
 
 		// Check if student is connected to a voice channel
-		const attendance = totalStudentIds!.map((id) =>
-			connectedStudentIds.includes(id) ? 1 : 0
-		);
+		const attendance = totalStudentIds!.map((id) => {
+			if (connectedStudentIds.includes(id)) {
+				connectedCount++;
+				return 1;
+			} else {
+				offlineCount++;
+				return 0;
+			}
+		});
 		const res = await sendAttendance(attendance);
 
 		// Check if success
@@ -83,8 +91,13 @@ const absen: Command = {
 		resultMessage(
 			message,
 			'Attendance Taken',
-			'Click on link to go to sheet!',
-			''
+			'Click on the link to check the sheet!',
+			'',
+			[
+				{ name: 'Total Present', value: connectedCount.toString() },
+				{ name: 'Total Absent', value: offlineCount.toString() },
+				{ name: 'Invalid Nicknames', value: invalidCount.toString() }
+			]
 		);
 	}
 };
