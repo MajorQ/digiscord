@@ -20,24 +20,24 @@ const absen: Command = {
 		processingMessage(message);
 
 		// Group request for performance
-		const reqs = await Promise.all([
+		// Check if sheet is empty, fetch online members, fetch student ids
+		const fetchData = await Promise.all([
 			checkEmptyAttendance(),
-			message.guild?.channels.fetch(),
+			message.guild?.channels.fetch(undefined, { force: true }),
 			fetchStudentIds()
 		]);
 
 		// If any requests fail, just abort
-		if (reqs.includes(null) || reqs.includes(undefined)) {
+		if (fetchData.includes(null) || fetchData.includes(undefined)) {
 			errorMessage(message);
 			return;
 		}
 
-		const emptySheet = reqs[0];
-		const channels = reqs[1];
-		const totalStudentIds = reqs[2];
+		const [isEmptySheet, channels, studentIds] = fetchData;
+		const voiceChannels = channels!.filter((c) => c.type == 'GUILD_VOICE');
 
 		// Check if attendance has already been filled
-		if (!emptySheet) {
+		if (!isEmptySheet) {
 			resultMessage(
 				message,
 				'Sheet Already Filled',
@@ -47,13 +47,9 @@ const absen: Command = {
 			return;
 		}
 
-		const voiceChannels = channels!.filter((c) => c.type == 'GUILD_VOICE');
-		const connectedStudentIds: string[] = [];
-		let invalidCount = 0;
-		let connectedCount = 0;
-		let offlineCount = 0;
-
 		// List student ids for each member in every voice channel
+		const presentStudentIds: string[] = [];
+		let invalidCount = 0;
 		voiceChannels.forEach((vc) => {
 			vc.members.forEach((m) => {
 				const studentId = m.nickname ?? '';
@@ -63,7 +59,7 @@ const absen: Command = {
 				const match = studentId.match(regex);
 
 				if (match) {
-					connectedStudentIds.push(match[1]);
+					presentStudentIds.push(match[1]);
 				} else {
 					invalidCount++;
 				}
@@ -71,19 +67,12 @@ const absen: Command = {
 		});
 
 		// Check if student is connected to a voice channel
-		const attendance = totalStudentIds!.map((id) => {
-			if (connectedStudentIds.includes(id)) {
-				connectedCount++;
-				return 1;
-			} else {
-				offlineCount++;
-				return 0;
-			}
-		});
-		const res = await sendAttendance(attendance);
+		const attendance = studentIds!.map((id) =>
+			presentStudentIds.includes(id) ? 1 : 0
+		);
 
-		// Check if success
-		if (!res) {
+		// Send attendance and check for failure
+		if (!(await sendAttendance(attendance))) {
 			errorMessage(message);
 			return;
 		}
@@ -94,8 +83,16 @@ const absen: Command = {
 			'Click on the link to check the sheet!',
 			'',
 			[
-				{ name: 'Total Present', value: connectedCount.toString() },
-				{ name: 'Total Absent', value: offlineCount.toString() },
+				{
+					name: 'Total Present',
+					value: presentStudentIds.length.toString()
+				},
+				{
+					name: 'Total Absent',
+					value: (
+						studentIds!.length - presentStudentIds.length
+					).toString()
+				},
 				{ name: 'Invalid Nicknames', value: invalidCount.toString() }
 			]
 		);
